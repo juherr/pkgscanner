@@ -4,7 +4,7 @@
     <groupId>org.twdata.pkgscanner</groupId>
     <artifactId>package-scanner</artifactId>
     <packaging>jar</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.5-SNAPSHOT</version>
     <name>Package Export Scanner</name>
     <url>http://maven.apache.org</url>
 
