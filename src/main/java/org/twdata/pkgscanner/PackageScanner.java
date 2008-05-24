@@ -14,7 +14,7 @@ public class PackageScanner {
     private Patterns jarPatterns;
     private ClassLoader classLoader;
     private VersionMapping[] versionMappings;
-    private PatternFactory patternFactory = new SimpleWildcardPatternFactory();
+    private PatternFactory patternFactory;
 
     /**
      * Example application that uses this class to generate an OSGi Export-Package header
@@ -61,6 +61,10 @@ public class PackageScanner {
      * Constructor
      */
     public PackageScanner() {
+        packagePatterns = new Patterns(new String[]{"com.*","net.*","org.*"}, new String[]{});
+        jarPatterns = new Patterns(new String[]{"*"}, new String[]{});
+        versionMappings = new VersionMapping[]{};
+        patternFactory = new SimpleWildcardPatternFactory();
     }
 
     /**
@@ -166,12 +170,28 @@ public class PackageScanner {
     }
 
     /**
+     * Sets the jar patterns to scan
+     * @param includes The patterns to include
+     */
+    public static Patterns jars(String[] includes) {
+        return new Patterns(includes, new String[]{});
+    }
+
+    /**
      * Sets the package patterns to scan
      * @param includes The patterns to include
      * @param excludes The patterns to exclude
      */
     public static Patterns packages(String[] includes, String[] excludes) {
         return new Patterns(includes, excludes);
+    }
+
+    /**
+     * Sets the package patterns to scan
+     * @param includes The patterns to include
+     */
+    public static Patterns packages(String[] includes) {
+        return new Patterns(includes, new String[]{});
     }
 
     ClassLoader getClassLoader() {
