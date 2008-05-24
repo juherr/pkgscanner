@@ -42,9 +42,10 @@ public class PackageScanner {
                 .scan();
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Export-Package: ");
+        sb.append("Export-Package: \n");
         for (Iterator<ExportPackage> i = exports.iterator(); i.hasNext(); ) {
             ExportPackage pkg = i.next();
+            sb.append("\t");
             sb.append(pkg.getPackageName());
             if (pkg.getVersion() != null) {
                 sb.append(";version=").append(pkg.getVersion());
