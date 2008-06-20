@@ -3,8 +3,6 @@ package org.twdata.pkgscanner;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.io.IOException;
@@ -16,7 +14,6 @@ import java.io.File;
 class InternalScanner {
     private ClassLoader classloader;
     private PackageScanner.VersionMapping[] versionMappings;
-    private static final Pattern JAR_VERSION_PATTERN = Pattern.compile("[a-zA-Z-_.]+([0-9][0-9a-zA-Z-_.]*)\\.jar");
 
     static interface Test {
         boolean matchesPackage(String pkg);
@@ -198,13 +195,38 @@ class InternalScanner {
             if (version == null) {
                 // Try to guess the version from the jar name
                 String name = jar.getName();
-                Matcher matcher = JAR_VERSION_PATTERN.matcher(name);
-                if (matcher.matches()) {
-                    version = matcher.group(1);
-                }
+                return extractVersion(name);
             }
         }
 
         return version;
+    }
+
+    /**
+     * Tries to guess the version by assuming it starts as the first number after a '-' or '_' sign.
+     */
+    String extractVersion(String filename)
+    {
+        StringBuilder version = null;
+        boolean lastWasSeparator = false;
+        for (int x=0; x<filename.length(); x++)
+        {
+            char c = filename.charAt(x);
+            if (c == '-' || c == '_')
+                lastWasSeparator = true;
+            else if (Character.isDigit(c) && lastWasSeparator && version == null)
+                version = new StringBuilder();
+
+            if (version != null)
+                version.append(c);
+        }
+
+        if (version != null)
+        {
+            if (".jar".equals(version.substring(version.length() - 4)))
+                version.delete(version.length() - 4, version.length());
+            return version.toString();
+        } else
+            return null;
     }
 }
