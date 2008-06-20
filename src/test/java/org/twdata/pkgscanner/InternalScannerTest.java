@@ -31,6 +31,8 @@ public class InternalScannerTest extends TestCase {
         assertEquals("2.0_something", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0_something.jar"), "testpackage"));
         assertEquals("2.0-beta", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0-beta.jar"), "testpackage"));
         assertEquals("2", scanner.determinePackageVersion(new File(tmpDir, "foo-2.jar"), "testpackage"));
+        assertEquals("2", scanner.determinePackageVersion(new File(tmpDir, "foo4-2.jar"), "testpackage"));
+        assertEquals("1.2.8", scanner.determinePackageVersion(new File(tmpDir, "log4j-1.2.8.jar"), "testpackage"));
         assertEquals(null, scanner.determinePackageVersion(new File(tmpDir, "foo-alpha.jar"), "testpackage"));
     }
 

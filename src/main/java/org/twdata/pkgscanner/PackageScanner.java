@@ -128,6 +128,19 @@ public class PackageScanner {
     }
 
     /**
+     * Sets the explicit package-version mappings
+     * @param mappings The package-version mappings
+     */
+    public PackageScanner withMappings(Map<String,String> mappings) {
+        List<VersionMapping> versions = new ArrayList<VersionMapping>();
+        for (Map.Entry<String,String> entry : mappings.entrySet())
+        {
+            versions.add(new VersionMapping(entry.getKey()).toVersion(entry.getValue()));
+        }
+        return withMappings(versions.toArray(new VersionMapping[versions.size()]));
+    }
+
+    /**
      * Sets the pattern factory to use
      * @param factory The pattern factory
      */
