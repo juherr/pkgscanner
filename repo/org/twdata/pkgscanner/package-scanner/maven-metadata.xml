@@ -3,13 +3,14 @@
   <artifactId>package-scanner</artifactId>
   <version>1.0-SNAPSHOT</version>
   <versioning>
-    <release>0.5.2</release>
+    <release>0.5.3</release>
     <versions>
       <version>1.0-SNAPSHOT</version>
       <version>0.5</version>
       <version>0.5.1</version>
       <version>0.5.2</version>
+      <version>0.5.3</version>
     </versions>
-    <lastUpdated>20080620122942</lastUpdated>
+    <lastUpdated>20080623044737</lastUpdated>
   </versioning>
 </metadata>
