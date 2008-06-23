@@ -133,9 +133,11 @@ public class PackageScanner {
      */
     public PackageScanner withMappings(Map<String,String> mappings) {
         List<VersionMapping> versions = new ArrayList<VersionMapping>();
-        for (Map.Entry<String,String> entry : mappings.entrySet())
-        {
-            versions.add(new VersionMapping(entry.getKey()).toVersion(entry.getValue()));
+        if (mappings != null) {
+            for (Map.Entry<String,String> entry : mappings.entrySet())
+            {
+                versions.add(new VersionMapping(entry.getKey()).toVersion(entry.getValue()));
+            }
         }
         return withMappings(versions.toArray(new VersionMapping[versions.size()]));
     }
