@@ -10,7 +10,6 @@ import java.util.Collection;
 
 import org.twdata.pkgscanner.pattern.PatternFactory;
 import org.twdata.pkgscanner.pattern.CompiledPattern;
-import com.mockobjects.dynamic.Mock;
 
 public class InternalScannerTest extends TestCase {
     private File tmpDir;
