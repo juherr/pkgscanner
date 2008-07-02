@@ -14,6 +14,7 @@ import java.io.File;
 class InternalScanner {
     private ClassLoader classloader;
     private PackageScanner.VersionMapping[] versionMappings;
+    private OsgiVersionConverter versionConverter = new DefaultOsgiVersionConverter();
 
     static interface Test {
         boolean matchesPackage(String pkg);
@@ -24,6 +25,10 @@ class InternalScanner {
     InternalScanner(ClassLoader cl, PackageScanner.VersionMapping[] versionMappings) {
         this.classloader = cl;
         this.versionMappings = versionMappings;
+    }
+
+    void setOsgiVersionConverter(OsgiVersionConverter converter) {
+        this.versionConverter = converter;
     }
 
     Collection<ExportPackage> findInPackage(Test test, String... roots) {
@@ -203,7 +208,8 @@ class InternalScanner {
     }
 
     /**
-     * Tries to guess the version by assuming it starts as the first number after a '-' or '_' sign.
+     * Tries to guess the version by assuming it starts as the first number after a '-' or '_' sign, then converts
+     * the version into an OSGi-compatible one.
      */
     String extractVersion(String filename)
     {
@@ -225,7 +231,7 @@ class InternalScanner {
         {
             if (".jar".equals(version.substring(version.length() - 4)))
                 version.delete(version.length() - 4, version.length());
-            return version.toString();
+            return versionConverter.getVersion(version.toString());
         } else
             return null;
     }
