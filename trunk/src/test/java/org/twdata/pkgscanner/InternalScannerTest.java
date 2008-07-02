@@ -10,6 +10,7 @@ import java.util.Collection;
 
 import org.twdata.pkgscanner.pattern.PatternFactory;
 import org.twdata.pkgscanner.pattern.CompiledPattern;
+import com.mockobjects.dynamic.Mock;
 
 public class InternalScannerTest extends TestCase {
     private File tmpDir;
@@ -27,6 +28,9 @@ public class InternalScannerTest extends TestCase {
     }
     public void testDeterminePackageVersion() throws Exception {
         InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {});
+        scanner.setOsgiVersionConverter(new OsgiVersionConverter() {
+            public String getVersion(String version) { return version; }
+        });
         assertEquals("2.0", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0.jar"), "testpackage"));
         assertEquals("2.0_something", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0_something.jar"), "testpackage"));
         assertEquals("2.0-beta", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0-beta.jar"), "testpackage"));
@@ -36,7 +40,7 @@ public class InternalScannerTest extends TestCase {
         assertEquals(null, scanner.determinePackageVersion(new File(tmpDir, "foo-alpha.jar"), "testpackage"));
     }
 
-    public void testDeterminePackageVersion_explicitVersion() throws Exception {
+    public void testDeterminePackageVersionWithExplicitVersion() throws Exception {
         PackageScanner.VersionMapping mapping = new PackageScanner.VersionMapping("testpackage").toVersion("34");
         mapping.setPatternFactory(new PatternFactory() {
             public CompiledPattern compile(final String pattern) {
