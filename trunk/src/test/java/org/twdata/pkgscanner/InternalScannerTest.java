@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Collection;
 
 import org.twdata.pkgscanner.pattern.PatternFactory;
@@ -36,6 +37,7 @@ public class InternalScannerTest extends TestCase {
         assertEquals("2", scanner.determinePackageVersion(new File(tmpDir, "foo-2.jar"), "testpackage"));
         assertEquals("2", scanner.determinePackageVersion(new File(tmpDir, "foo4-2.jar"), "testpackage"));
         assertEquals("1.2.8", scanner.determinePackageVersion(new File(tmpDir, "log4j-1.2.8.jar"), "testpackage"));
+        assertEquals("2.0+xmlrpc61", scanner.determinePackageVersion(new File(tmpDir, "xmlrpc-2.0+xmlrpc61.jar"), "testpackage"));
         assertEquals(null, scanner.determinePackageVersion(new File(tmpDir, "foo-alpha.jar"), "testpackage"));
     }
 
@@ -78,18 +80,16 @@ public class InternalScannerTest extends TestCase {
         assertEquals("parent.child", exports.iterator().next().getPackageName());
     }
 
-    private File getFile(String name) throws IOException {
-        URL url = getClass().getClassLoader().getResource(name);
-        if (url == null) {
-            throw new IOException("Unable to find "+name);
-        }
-        String urlPath = url.getFile();
-        urlPath = URLDecoder.decode(urlPath, "UTF-8");
+    public void testFindInPackageWithPlusInFilename() throws Exception {
 
-        // If it's a file in a directory, trim the stupid file: spec
-        if (urlPath.startsWith("file:")) {
-            urlPath = urlPath.substring(5);
-        }
-        return new File(urlPath);
+        URLClassLoader cl = new URLClassLoader(new URL[] {getClass().getResource("/foo+bar.jar")});
+        InternalScanner scanner = new InternalScanner(cl, new PackageScanner.VersionMapping[] {});
+        Collection<ExportPackage> exports = scanner.findInPackage(new InternalScanner.Test() {
+            public boolean matchesPackage(String pkg) { return true; }
+            public boolean matchesJar(String name) { return true; }
+        }, "foo");
+        assertNotNull(exports);
+        assertEquals(1, exports.size());
+        assertEquals("foo", exports.iterator().next().getPackageName());
     }
 }
