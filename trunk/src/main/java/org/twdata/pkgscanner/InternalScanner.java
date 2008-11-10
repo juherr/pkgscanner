@@ -69,7 +69,7 @@ class InternalScanner {
 
         while (urls.hasMoreElements()) {
             try {
-                String urlPath = urls.nextElement().getFile();
+                String urlPath = urls.nextElement().getPath();
                 urlPath = URLDecoder.decode(urlPath, "UTF-8");
 
                 // If it's a file in a directory, trim the stupid file: spec
