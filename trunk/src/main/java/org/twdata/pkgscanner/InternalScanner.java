@@ -31,13 +31,25 @@ class InternalScanner {
         this.versionConverter = converter;
     }
 
-    Collection<ExportPackage> findInPackage(Test test, String... roots) {
+    Collection<ExportPackage> findInPackages(Test test, String... roots) {
         // weans out duplicates by choosing the winner as the last one to be discovered
         Map<String, ExportPackage> map = new HashMap<String,ExportPackage>();
         for (String pkg : roots) {
             for (ExportPackage export : findInPackage(test, pkg)) {
                 map.put(export.getPackageName(), export);
             }
+        }
+
+        // Let's be nice and sort the results by package
+        return new TreeSet(map.values());
+    }
+
+    Collection<ExportPackage> findInUrls(Test test, URL... urls) {
+        // weans out duplicates by choosing the winner as the last one to be discovered
+        Map<String, ExportPackage> map = new HashMap<String,ExportPackage>();
+        Vector<URL> list = new Vector<URL>(Arrays.asList(urls));
+        for (ExportPackage export : findInPackageWithUrls(test, "", list.elements())) {
+            map.put(export.getPackageName(), export);
         }
 
         // Let's be nice and sort the results by package
@@ -67,6 +79,12 @@ class InternalScanner {
             return localExports;
         }
 
+        return findInPackageWithUrls(test, packageName, urls);
+    }
+
+    List<ExportPackage> findInPackageWithUrls(Test test, String packageName, Enumeration<URL> urls)
+    {
+        List<ExportPackage> localExports = new ArrayList<ExportPackage>();
         while (urls.hasMoreElements()) {
             try {
                 String urlPath = urls.nextElement().getPath();
@@ -78,8 +96,8 @@ class InternalScanner {
                 }
 
                 // Else it's in a JAR, grab the path to the jar
-                if (urlPath.indexOf('!') > 0) {
-                    urlPath = urlPath.substring(0, urlPath.indexOf('!'));
+                if (urlPath.lastIndexOf('!') > 0) {
+                    urlPath = urlPath.substring(0, urlPath.lastIndexOf('!'));
                 }
 
                 //System.out.println("Scanning for classes in [" + urlPath + "] matching criteria: " + test);
@@ -126,6 +144,10 @@ class InternalScanner {
 
             if (file.isDirectory()) {
                 localExports.addAll(loadImplementationsInDirectory(test, packageOrClass, file));
+
+            // If the parent is empty, then assume the directory's jars should be searched
+            } else if ("".equals(parent) && file.getName().endsWith(".jar") && test.matchesJar(file.getName())) {
+                localExports.addAll(loadImplementationsInJar(test, "", file));
             } else {
                 String pkg = packageOrClass;
                 int lastSlash = pkg.lastIndexOf('/');

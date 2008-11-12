@@ -11,14 +11,14 @@ import java.util.Collection;
 
 import org.twdata.pkgscanner.pattern.PatternFactory;
 import org.twdata.pkgscanner.pattern.CompiledPattern;
+import org.twdata.pkgscanner.pattern.SimpleWildcardPatternFactory;
 
 public class InternalScannerTest extends TestCase {
     private File tmpDir;
 
     @Override
     public void setUp() throws IOException {
-        File tmp = File.createTempFile("foo", "bar");
-        tmpDir = new File(tmp.getParentFile(), "footest");
+        tmpDir = new File("target", "footest");
         tmpDir.mkdir();
     }
 
@@ -80,7 +80,45 @@ public class InternalScannerTest extends TestCase {
         assertEquals("parent.child", exports.iterator().next().getPackageName());
     }
 
-    public void testFindInPackageWithPlusInFilename() throws Exception {
+    public void testFindLoadImplementationsInDirectory() throws Exception {
+        File parent = new File(tmpDir, "parent");
+        File child = new File(parent, "child");
+        child.mkdirs();
+        File baby = new File(child, "foo.class");
+        baby.createNewFile();
+        File baby2 = new File(child, "bfoo");
+        baby2.createNewFile();
+
+        InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {});
+        Collection<ExportPackage> exports = scanner.loadImplementationsInDirectory(new InternalScanner.Test() {
+            public boolean matchesPackage(String pkg) { return true; }
+            public boolean matchesJar(String name) { return true; }
+        }, "parent", parent);
+        assertNotNull(exports);
+        assertEquals(1, exports.size());
+        assertEquals("parent.child", exports.iterator().next().getPackageName());
+    }
+
+    public void testFindInUrls() throws Exception {
+
+        final PackageScanner.VersionMapping mapping = new PackageScanner.VersionMapping("pkg.in.dir", "1.1");
+        mapping.setPatternFactory(new SimpleWildcardPatternFactory());
+        InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {
+                mapping
+        });
+        Collection<ExportPackage> exports = scanner.findInUrls(new InternalScanner.Test() {
+            public boolean matchesPackage(String pkg) { return true; }
+            public boolean matchesJar(String name) { return true; }
+        }, getClass().getClassLoader().getResource("scanbase/lib"), getClass().getClassLoader().getResource("scanbase/classes"));
+        assertNotNull(exports);
+        assertEquals(2, exports.size());
+
+        assertTrue(exports.contains(new ExportPackage("pkg.in.jar", "1.0")));
+        assertTrue(exports.contains(new ExportPackage("pkg.in.dir", "1.1")));
+    }
+
+
+    public void testFindInPackagesWithUrlsAndPlusInFilename() throws Exception {
 
         URLClassLoader cl = new URLClassLoader(new URL[] {getClass().getResource("/foo+bar.jar")});
         InternalScanner scanner = new InternalScanner(cl, new PackageScanner.VersionMapping[] {});

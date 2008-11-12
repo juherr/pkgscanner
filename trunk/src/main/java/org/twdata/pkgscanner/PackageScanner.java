@@ -5,6 +5,7 @@ import org.twdata.pkgscanner.pattern.PatternFactory;
 import org.twdata.pkgscanner.pattern.SimpleWildcardPatternFactory;
 
 import java.util.*;
+import java.net.URL;
 
 /**
  * Scans the classpath for packages and tries to determine their versions
@@ -84,28 +85,41 @@ public class PackageScanner {
      */
     public Collection<ExportPackage> scan() {
         // Initialize the pattern factories
-        this.jarPatterns.setPatternFactory(patternFactory);
-        this.packagePatterns.setPatternFactory(patternFactory);
-        for (VersionMapping mapping : versionMappings) {
-            mapping.setPatternFactory(patternFactory);
-        }
+        initPatterns();
 
         // Determine which packages to start from
         List<String> roots = packagePatterns.getRoots();
         InternalScanner scanner = new InternalScanner(getClassLoader(), versionMappings);
 
         // Kick off the scanning
-        Collection<ExportPackage> exports = scanner.findInPackage(new InternalScanner.Test() {
-                public boolean matchesPackage(String pkg) {
-                    return packagePatterns.match(pkg);
-                }
-
-                public boolean matchesJar(String name) {
-                    return jarPatterns.match(name);
-                }
-            }, roots.toArray(new String[]{}));
+        Collection<ExportPackage> exports = scanner.findInPackages(new PatternTest(), roots.toArray(new String[]{}));
 
         return exports;
+    }
+
+    /**
+     * Scans the passed set of URLs.
+     * @param urls A list of urls that should be scanned
+     * @return A list of discovered packages and their guessed version
+     */
+    public Collection<ExportPackage> scan(URL... urls) {
+        // Initialize the pattern factories
+        initPatterns();
+
+        // Kick off the scanning
+        InternalScanner scanner = new InternalScanner(getClassLoader(), versionMappings);
+        Collection<ExportPackage> exports = scanner.findInUrls(new PatternTest(), urls);
+
+        return exports;
+    }
+
+    private void initPatterns()
+    {
+        this.jarPatterns.setPatternFactory(patternFactory);
+        this.packagePatterns.setPatternFactory(patternFactory);
+        for (VersionMapping mapping : versionMappings) {
+            mapping.setPatternFactory(patternFactory);
+        }
     }
 
     // DSL methods and classes
@@ -227,7 +241,12 @@ public class PackageScanner {
          * @param packagePattern The package pattern
          */
         public VersionMapping(String packagePattern) {
+            this(packagePattern, null);
+        }
+
+        public VersionMapping(String packagePattern, String version) {
             this.packagePattern = packagePattern;
+            this.toVersion = version;
         }
 
         void setPatternFactory(PatternFactory factory) {
@@ -328,6 +347,16 @@ public class PackageScanner {
             for (String ptn : origExcludes) {
                 this.excludes.add(factory.compile(ptn));
             }
+        }
+    }
+
+    private class PatternTest implements InternalScanner.Test {
+        public boolean matchesPackage(String pkg) {
+            return packagePatterns.match(pkg);
+        }
+
+        public boolean matchesJar(String name) {
+            return jarPatterns.match(name);
         }
     }
 }
