@@ -1,11 +1,7 @@
 package org.twdata.pkgscanner;
 
 /**
- * Created by IntelliJ IDEA.
- * User: mrdon
- * Date: 24/05/2008
- * Time: 10:45:17 AM
- * To change this template use File | Settings | File Templates.
+ * Represents an export consisting of a package name and version
  */
 public class ExportPackage implements Comparable<ExportPackage> {
     private String packageName;
@@ -13,6 +9,9 @@ public class ExportPackage implements Comparable<ExportPackage> {
 
     public ExportPackage(String packageName, String version) {
         this.version = version;
+        if (packageName != null && packageName.startsWith(".")) {
+            packageName = packageName.substring(1);
+        }
         this.packageName = packageName;
     }
 
@@ -26,5 +25,26 @@ public class ExportPackage implements Comparable<ExportPackage> {
 
     public int compareTo(ExportPackage exportPackage) {
         return packageName.compareTo(exportPackage.getPackageName());
+    }
+
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ExportPackage that = (ExportPackage) o;
+
+        if (!packageName.equals(that.packageName)) return false;
+        if (version != null ? !version.equals(that.version) : that.version != null) return false;
+
+        return true;
+    }
+
+    public int hashCode()
+    {
+        int result;
+        result = packageName.hashCode();
+        result = 31 * result + (version != null ? version.hashCode() : 0);
+        return result;
     }
 }
