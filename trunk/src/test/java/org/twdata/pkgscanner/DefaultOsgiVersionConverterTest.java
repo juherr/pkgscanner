@@ -58,4 +58,15 @@ public class DefaultOsgiVersionConverterTest extends TestCase
         assertEquals( "0.0.0.4aug2000r7_dev", osgiVersion );
     }
 
+    /*
+    public void testPerformance() throws Exception
+    {
+        long startMillis = System.currentTimeMillis();
+        for (int i=0; i<10000; i++)
+        {
+            maven2Osgi.getVersion("1.0-20070119.021432-1");
+        }
+        System.out.println("Took " + (System.currentTimeMillis() - startMillis) + " ms");
+    }
+    */
 }
