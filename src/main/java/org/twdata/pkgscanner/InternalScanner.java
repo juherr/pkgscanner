@@ -200,7 +200,7 @@ class InternalScanner {
                     if (pos > -1) {
                         pkg = pkg.substring(0, pos);
                     }
-                    pkg = pkg.replace("/", ".");
+                    pkg = pkg.replace('/', '.');
                     if (!scanned.contains(pkg)) {
                         if (test.matchesPackage(pkg)) {
                             localExports.add(new ExportPackage(pkg, determinePackageVersion(file, pkg)));
