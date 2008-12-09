@@ -130,4 +130,30 @@ public class InternalScannerTest extends TestCase {
         assertEquals(1, exports.size());
         assertEquals("foo", exports.iterator().next().getPackageName());
     }
+
+    public void testFindInPackagesWithUrlsAndMultiplePlusesInFilename() throws Exception {
+
+        URLClassLoader cl = new URLClassLoader(new URL[] {getClass().getResource("/foo+bar+baz.jar")});
+        InternalScanner scanner = new InternalScanner(cl, new PackageScanner.VersionMapping[] {});
+        Collection<ExportPackage> exports = scanner.findInPackage(new InternalScanner.Test() {
+            public boolean matchesPackage(String pkg) { return true; }
+            public boolean matchesJar(String name) { return true; }
+        }, "foo");
+        assertNotNull(exports);
+        assertEquals(1, exports.size());
+        assertEquals("foo", exports.iterator().next().getPackageName());
+    }
+
+    public void testFindInPackagesWithUrlsAndSpaceInFilename() throws Exception {
+
+        URLClassLoader cl = new URLClassLoader(new URL[] {getClass().getResource("/bar baz.jar")});
+        InternalScanner scanner = new InternalScanner(cl, new PackageScanner.VersionMapping[] {});
+        Collection<ExportPackage> exports = scanner.findInPackage(new InternalScanner.Test() {
+            public boolean matchesPackage(String pkg) { return true; }
+            public boolean matchesJar(String name) { return true; }
+        }, "foo");
+        assertNotNull(exports);
+        assertEquals(1, exports.size());
+        assertEquals("foo", exports.iterator().next().getPackageName());
+    }
 }
