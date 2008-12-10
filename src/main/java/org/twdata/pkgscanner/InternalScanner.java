@@ -87,21 +87,18 @@ class InternalScanner {
         List<ExportPackage> localExports = new ArrayList<ExportPackage>();
         while (urls.hasMoreElements()) {
             try {
-                String urlPath = urls.nextElement().getPath();
-                urlPath = URLDecoder.decode(urlPath, "UTF-8");
+	        URL url = urls.nextElement();
+                String urlPath = url.getPath();
 
-                // If it's a file in a directory, trim the stupid file: spec
-                if (urlPath.startsWith("file:")) {
-                    urlPath = urlPath.substring(5);
-                }
-
-                // Else it's in a JAR, grab the path to the jar
+                // it's in a JAR, grab the path to the jar
                 if (urlPath.lastIndexOf('!') > 0) {
                     urlPath = urlPath.substring(0, urlPath.lastIndexOf('!'));
-                }
+                } else if (!urlPath.startsWith("file:")) {
+                    urlPath = "file:"+urlPath;
+		}    
 
                 //System.out.println("Scanning for classes in [" + urlPath + "] matching criteria: " + test);
-                File file = new File(urlPath);
+                File file = new File(new URL(urlPath).toURI());
                 if (file.isDirectory()) {
                     localExports.addAll(loadImplementationsInDirectory(test, packageName, file));
                 } else {
@@ -110,7 +107,7 @@ class InternalScanner {
                     }
                 }
             }
-            catch (IOException ioe) {
+            catch (Exception ioe) {
                 System.err.println("could not read entries: " + ioe);
             }
         }
@@ -185,8 +182,12 @@ class InternalScanner {
                 jarFile = new JarFile(file);
             } catch (IOException ex)
             {
+		ex.printStackTrace();
+		System.out.println("path:"+file.getAbsolutePath());
                 // Try again in case it originally had a '+' character in the file name
-                jarFile = new JarFile(new File(file.getAbsolutePath().replace(" ","+")));
+		String newPath = file.getAbsolutePath().replace(" ", "\\+");
+		System.out.println("new path:"+newPath);
+                jarFile = new JarFile(new File(newPath));
             }
 
             Set scanned = new HashSet<String>();
