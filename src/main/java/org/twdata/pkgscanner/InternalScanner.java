@@ -2,6 +2,7 @@ package org.twdata.pkgscanner;
 
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -87,7 +88,7 @@ class InternalScanner {
         List<ExportPackage> localExports = new ArrayList<ExportPackage>();
         while (urls.hasMoreElements()) {
             try {
-	        URL url = urls.nextElement();
+                URL url = urls.nextElement();
                 String urlPath = url.getPath();
 
                 // it's in a JAR, grab the path to the jar
@@ -95,7 +96,7 @@ class InternalScanner {
                     urlPath = urlPath.substring(0, urlPath.lastIndexOf('!'));
                 } else if (!urlPath.startsWith("file:")) {
                     urlPath = "file:"+urlPath;
-		}    
+                }    
 
                 //System.out.println("Scanning for classes in [" + urlPath + "] matching criteria: " + test);
                 File file = new File(new URL(urlPath).toURI());
@@ -107,8 +108,12 @@ class InternalScanner {
                     }
                 }
             }
-            catch (Exception ioe) {
+            catch (IOException ioe) {
                 System.err.println("could not read entries: " + ioe);
+            }
+            catch (URISyntaxException e)
+            {
+                System.err.println("Invalid file name: "+ e);
             }
         }
         return localExports;
