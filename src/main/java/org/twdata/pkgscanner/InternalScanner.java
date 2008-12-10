@@ -176,20 +176,7 @@ class InternalScanner {
 
         List<ExportPackage> localExports = new ArrayList<ExportPackage>();
         try {
-            JarFile jarFile;
-            try
-            {
-                jarFile = new JarFile(file);
-            } catch (IOException ex)
-            {
-		ex.printStackTrace();
-		System.out.println("path:"+file.getAbsolutePath());
-                // Try again in case it originally had a '+' character in the file name
-		String newPath = file.getAbsolutePath().replace(" ", "\\+");
-		System.out.println("new path:"+newPath);
-                jarFile = new JarFile(new File(newPath));
-            }
-
+            JarFile jarFile = new JarFile(file);
             Set scanned = new HashSet<String>();
 
             for (Enumeration<JarEntry> e = jarFile.entries(); e.hasMoreElements(); ) {
