@@ -4,7 +4,6 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
@@ -15,6 +14,7 @@ import org.twdata.pkgscanner.pattern.SimpleWildcardPatternFactory;
 
 public class InternalScannerTest extends TestCase {
     private File tmpDir;
+    private boolean debug = true;
 
     @Override
     public void setUp() throws IOException {
@@ -27,7 +27,7 @@ public class InternalScannerTest extends TestCase {
         tmpDir.delete();
     }
     public void testDeterminePackageVersion() throws Exception {
-        InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {});
+        InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {}, debug);
         scanner.setOsgiVersionConverter(new OsgiVersionConverter() {
             public String getVersion(String version) { return version; }
         });
@@ -56,7 +56,7 @@ public class InternalScannerTest extends TestCase {
                 };
             }
         });
-        InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {mapping});
+        InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {mapping}, debug);
 
         assertEquals("34", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0.jar"), "testpackage"));
     }
@@ -70,7 +70,7 @@ public class InternalScannerTest extends TestCase {
         File baby2 = new File(child, "bfoo");
         baby2.createNewFile();
 
-        InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {});
+        InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {}, debug);
         Collection<ExportPackage> exports = scanner.loadImplementationsInDirectory(new InternalScanner.Test() {
             public boolean matchesPackage(String pkg) { return true; }
             public boolean matchesJar(String name) { return true; }
@@ -89,7 +89,7 @@ public class InternalScannerTest extends TestCase {
         File baby2 = new File(child, "bfoo");
         baby2.createNewFile();
 
-        InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {});
+        InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {}, debug);
         Collection<ExportPackage> exports = scanner.loadImplementationsInDirectory(new InternalScanner.Test() {
             public boolean matchesPackage(String pkg) { return true; }
             public boolean matchesJar(String name) { return true; }
@@ -105,7 +105,7 @@ public class InternalScannerTest extends TestCase {
         mapping.setPatternFactory(new SimpleWildcardPatternFactory());
         InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {
                 mapping
-        });
+        }, debug);
         Collection<ExportPackage> exports = scanner.findInUrls(new InternalScanner.Test() {
             public boolean matchesPackage(String pkg) { return true; }
             public boolean matchesJar(String name) { return true; }
@@ -121,7 +121,7 @@ public class InternalScannerTest extends TestCase {
     public void testFindInPackagesWithUrlsAndPlusInFilename() throws Exception {
 
         URLClassLoader cl = new URLClassLoader(new URL[] {getClass().getResource("/foo+bar.jar")});
-        InternalScanner scanner = new InternalScanner(cl, new PackageScanner.VersionMapping[] {});
+        InternalScanner scanner = new InternalScanner(cl, new PackageScanner.VersionMapping[] {}, debug);
         Collection<ExportPackage> exports = scanner.findInPackage(new InternalScanner.Test() {
             public boolean matchesPackage(String pkg) { return true; }
             public boolean matchesJar(String name) { return true; }
@@ -134,7 +134,7 @@ public class InternalScannerTest extends TestCase {
     public void testFindInPackagesWithUrlsAndMultiplePlusesInFilename() throws Exception {
 
         URLClassLoader cl = new URLClassLoader(new URL[] {getClass().getResource("/foo+bar+baz.jar")});
-        InternalScanner scanner = new InternalScanner(cl, new PackageScanner.VersionMapping[] {});
+        InternalScanner scanner = new InternalScanner(cl, new PackageScanner.VersionMapping[] {}, debug);
         Collection<ExportPackage> exports = scanner.findInPackage(new InternalScanner.Test() {
             public boolean matchesPackage(String pkg) { return true; }
             public boolean matchesJar(String name) { return true; }
@@ -147,7 +147,7 @@ public class InternalScannerTest extends TestCase {
     public void testFindInPackagesWithUrlsAndSpaceInFilename() throws Exception {
 
         URLClassLoader cl = new URLClassLoader(new URL[] {getClass().getResource("/bar baz.jar")});
-        InternalScanner scanner = new InternalScanner(cl, new PackageScanner.VersionMapping[] {});
+        InternalScanner scanner = new InternalScanner(cl, new PackageScanner.VersionMapping[] {}, debug);
         Collection<ExportPackage> exports = scanner.findInPackage(new InternalScanner.Test() {
             public boolean matchesPackage(String pkg) { return true; }
             public boolean matchesJar(String name) { return true; }

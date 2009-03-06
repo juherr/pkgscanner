@@ -16,6 +16,7 @@ public class PackageScanner {
     private ClassLoader classLoader;
     private VersionMapping[] versionMappings;
     private PatternFactory patternFactory;
+    private boolean debug = false;
 
     /**
      * Example application that uses this class to generate an OSGi Export-Package header
@@ -89,7 +90,7 @@ public class PackageScanner {
 
         // Determine which packages to start from
         List<String> roots = packagePatterns.getRoots();
-        InternalScanner scanner = new InternalScanner(getClassLoader(), versionMappings);
+        InternalScanner scanner = new InternalScanner(getClassLoader(), versionMappings, debug);
 
         // Kick off the scanning
         Collection<ExportPackage> exports = scanner.findInPackages(new PatternTest(), roots.toArray(new String[]{}));
@@ -107,7 +108,7 @@ public class PackageScanner {
         initPatterns();
 
         // Kick off the scanning
-        InternalScanner scanner = new InternalScanner(getClassLoader(), versionMappings);
+        InternalScanner scanner = new InternalScanner(getClassLoader(), versionMappings, debug);
         Collection<ExportPackage> exports = scanner.findInUrls(new PatternTest(), urls);
 
         return exports;
@@ -154,6 +155,16 @@ public class PackageScanner {
             }
         }
         return withMappings(versions.toArray(new VersionMapping[versions.size()]));
+    }
+
+    /**
+     * Enables debugging output
+     * @return this
+     */
+    public PackageScanner enableDebug()
+    {
+        this.debug = true;
+        return this;
     }
 
     /**
