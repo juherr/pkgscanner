@@ -16,6 +16,7 @@ class InternalScanner {
     private ClassLoader classloader;
     private PackageScanner.VersionMapping[] versionMappings;
     private OsgiVersionConverter versionConverter = new DefaultOsgiVersionConverter();
+    private final boolean debug;
 
     static interface Test {
         boolean matchesPackage(String pkg);
@@ -23,9 +24,10 @@ class InternalScanner {
         boolean matchesJar(String name);
     }
 
-    InternalScanner(ClassLoader cl, PackageScanner.VersionMapping[] versionMappings) {
+    InternalScanner(ClassLoader cl, PackageScanner.VersionMapping[] versionMappings, boolean debug) {
         this.classloader = cl;
         this.versionMappings = versionMappings;
+        this.debug = debug;
     }
 
     void setOsgiVersionConverter(OsgiVersionConverter converter) {
@@ -54,7 +56,7 @@ class InternalScanner {
         }
 
         // Let's be nice and sort the results by package
-        return new TreeSet(map.values());
+        return new TreeSet<ExportPackage>(map.values());
     }
 
     /**
@@ -136,7 +138,7 @@ class InternalScanner {
         File[] files = location.listFiles();
         StringBuilder builder = null;
         List<ExportPackage> localExports = new ArrayList<ExportPackage>();
-        Set scanned = new HashSet<String>();
+        Set<String> scanned = new HashSet<String>();
 
         for (File file : files) {
             builder = new StringBuilder(100);
@@ -182,7 +184,7 @@ class InternalScanner {
         List<ExportPackage> localExports = new ArrayList<ExportPackage>();
         try {
             JarFile jarFile = new JarFile(file);
-            Set scanned = new HashSet<String>();
+            Set<String> scanned = new HashSet<String>();
 
             for (Enumeration<JarEntry> e = jarFile.entries(); e.hasMoreElements(); ) {
                 JarEntry entry = e.nextElement();
@@ -221,10 +223,20 @@ class InternalScanner {
         if (version == null && jar != null) {
             // TODO: Look for osgi headers
 
-            if (version == null) {
-                // Try to guess the version from the jar name
-                String name = jar.getName();
-                return extractVersion(name);
+            // Try to guess the version from the jar name
+            String name = jar.getName();
+            version = extractVersion(name);
+        }
+
+        if (version == null && debug)
+        {
+            if (jar != null)
+            {
+                System.err.println("Unable to determine version for '" + pkg + "' in jar '" + jar.getPath() + "'");
+            }
+            else
+            {
+                System.err.println("Unable to determine version for '" + pkg + "'");
             }
         }
 
