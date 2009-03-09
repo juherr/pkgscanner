@@ -58,7 +58,7 @@ public class InternalScannerTest extends TestCase {
         });
         InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {mapping}, debug);
 
-        assertEquals("34", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0.jar"), "testpackage"));
+        assertEquals("34.0.0", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0.jar"), "testpackage"));
     }
 
     public void testDeterminePackageVersionWithExplicitNonOsgiVersion() throws Exception {
