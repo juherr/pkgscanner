@@ -61,6 +61,26 @@ public class InternalScannerTest extends TestCase {
         assertEquals("34", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0.jar"), "testpackage"));
     }
 
+    public void testDeterminePackageVersionWithExplicitNonOsgiVersion() throws Exception {
+        PackageScanner.VersionMapping mapping = new PackageScanner.VersionMapping("testpackage").toVersion("34-SNAPSHOT");
+        mapping.setPatternFactory(new PatternFactory() {
+            public CompiledPattern compile(final String pattern) {
+                return new CompiledPattern() {
+                    public String getOriginal() {
+                        return pattern;
+                    }
+
+                    public boolean matches(String value) {
+                        return value.equals(pattern);
+                    }
+                };
+            }
+        });
+        InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {mapping}, debug);
+
+        assertEquals("34.0.0.SNAPSHOT", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0.jar"), "testpackage"));
+    }
+
     public void testLoadImplementationsInDirectory() throws Exception {
         File parent = new File(tmpDir, "parent");
         File child = new File(parent, "child");

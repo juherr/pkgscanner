@@ -26,6 +26,10 @@ class InternalScanner {
 
     InternalScanner(ClassLoader cl, PackageScanner.VersionMapping[] versionMappings, boolean debug) {
         this.classloader = cl;
+        for (PackageScanner.VersionMapping mapping : versionMappings)
+        {
+            mapping.toVersion(versionConverter.getVersion(mapping.getVersion()));
+        }
         this.versionMappings = versionMappings;
         this.debug = debug;
     }
