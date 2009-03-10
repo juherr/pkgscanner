@@ -13,6 +13,7 @@ import java.io.File;
  * Does the actual work of scanning the classloader
  */
 class InternalScanner {
+    private Map<String,Set<String>> jarContentCache = new HashMap<String,Set<String>>();
     private ClassLoader classloader;
     private PackageScanner.VersionMapping[] versionMappings;
     private OsgiVersionConverter versionConverter = new DefaultOsgiVersionConverter();
@@ -110,7 +111,7 @@ class InternalScanner {
                     localExports.addAll(loadImplementationsInDirectory(test, packageName, file));
                 } else {
                     if (test.matchesJar(file.getName())) {
-                        localExports.addAll(loadImplementationsInJar(test, packageName, file));
+                        localExports.addAll(loadImplementationsInJar(test, file));
                     }
                 }
             }
@@ -155,7 +156,7 @@ class InternalScanner {
 
             // If the parent is empty, then assume the directory's jars should be searched
             } else if ("".equals(parent) && file.getName().endsWith(".jar") && test.matchesJar(file.getName())) {
-                localExports.addAll(loadImplementationsInJar(test, "", file));
+                localExports.addAll(loadImplementationsInJar(test, file));
             } else {
                 String pkg = packageOrClass;
                 int lastSlash = pkg.lastIndexOf('/');
@@ -180,39 +181,56 @@ class InternalScanner {
      * will be logged, but no error will be raised.
      *
      * @param test    a Test used to filter the classes that are discovered
-     * @param parent  the parent package under which classes must be in order to be considered
      * @param file the jar file to be examined for classes
      */
-    List<ExportPackage> loadImplementationsInJar(Test test, String parent, File file) {
+    List<ExportPackage> loadImplementationsInJar(Test test, File file) {
 
         List<ExportPackage> localExports = new ArrayList<ExportPackage>();
-        try {
-            JarFile jarFile = new JarFile(file);
-            Set<String> scanned = new HashSet<String>();
+        Set<String> packages = jarContentCache.get(file.getPath());
+        if (packages == null)
+        {
+            packages = new HashSet<String>();
+            try {
+                JarFile jarFile = new JarFile(file);
 
-            for (Enumeration<JarEntry> e = jarFile.entries(); e.hasMoreElements(); ) {
-                JarEntry entry = e.nextElement();
-                String name = entry.getName();
-                if (!entry.isDirectory() && name.startsWith(parent)) {
-                    String pkg = name;
-                    int pos = pkg.lastIndexOf('/');
-                    if (pos > -1) {
-                        pkg = pkg.substring(0, pos);
-                    }
-                    pkg = pkg.replace('/', '.');
-                    if (!scanned.contains(pkg)) {
-                        if (test.matchesPackage(pkg)) {
-                            localExports.add(new ExportPackage(pkg, determinePackageVersion(file, pkg)));
+
+                for (Enumeration<JarEntry> e = jarFile.entries(); e.hasMoreElements(); ) {
+                    JarEntry entry = e.nextElement();
+                    String name = entry.getName();
+                    if (!entry.isDirectory()) {
+                        String pkg = name;
+                        int pos = pkg.lastIndexOf('/');
+                        if (pos > -1) {
+                            pkg = pkg.substring(0, pos);
                         }
-                        scanned.add(pkg);
-                    }
-                 }
+                        pkg = pkg.replace('/', '.');
+                        packages.add(pkg);
+                     }
+                }
+            }
+            catch (IOException ioe) {
+                System.err.println("Could not search jar file '" + file + "' for classes matching criteria: " +
+                        test + " due to an IOException" + ioe);
+                return Collections.emptyList();
+            }
+            finally
+            {
+                // set the cache, even if the scan produced an error
+                jarContentCache.put(file.getPath(), packages);
             }
         }
-        catch (IOException ioe) {
-            System.err.println("Could not search jar file '" + file + "' for classes matching criteria: " +
-                    test + " due to an IOException" + ioe);
+
+        Set<String> scanned = new HashSet<String>();
+        for (String pkg : packages)
+        {
+            if (!scanned.contains(pkg)) {
+                if (test.matchesPackage(pkg)) {
+                    localExports.add(new ExportPackage(pkg, determinePackageVersion(file, pkg)));
+                }
+                scanned.add(pkg);
+            }
         }
+
         return localExports;
     }
 
