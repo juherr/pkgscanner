@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.Vector;
 
 import org.twdata.pkgscanner.pattern.PatternFactory;
 import org.twdata.pkgscanner.pattern.CompiledPattern;
@@ -175,5 +178,19 @@ public class InternalScannerTest extends TestCase {
         assertNotNull(exports);
         assertEquals(1, exports.size());
         assertEquals("foo", exports.iterator().next().getPackageName());
+    }
+
+    public void testFindInPackagesWithHttpUrl() throws Exception {
+
+        URL[] array = {new URL("jar:http://www.atlassian.com/foo.jar!/foo")};
+        Enumeration<URL> urls = new Vector<URL>(Arrays.asList(array)).elements();
+        URLClassLoader cl = new URLClassLoader(array);
+        InternalScanner scanner = new InternalScanner(cl, new PackageScanner.VersionMapping[] {}, debug);
+        Collection<ExportPackage> exports = scanner.findInPackageWithUrls(new InternalScanner.Test() {
+            public boolean matchesPackage(String pkg) { return true; }
+            public boolean matchesJar(String name) { return true; }
+        }, "foo", urls);
+        assertNotNull(exports);
+        assertEquals(0, exports.size());
     }
 }
