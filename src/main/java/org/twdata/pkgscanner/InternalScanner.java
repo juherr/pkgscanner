@@ -15,7 +15,7 @@ import java.io.File;
  * Does the actual work of scanning the classloader
  */
 class InternalScanner {
-    private static Log log = LogFactory.getLog(InternalScanner.class);
+    private final Log log = LogFactory.getLog(InternalScanner.class);
     private Map<String,Set<String>> jarContentCache = new HashMap<String,Set<String>>();
     private ClassLoader classloader;
     private PackageScanner.VersionMapping[] versionMappings;
@@ -86,7 +86,7 @@ class InternalScanner {
             urls = classloader.getResources(packageName);
         }
         catch (IOException ioe) {
-            log.error("Could not read package: " + packageName);
+            log.warn("Could not read package: " + packageName);
             return localExports;
         }
 
@@ -268,11 +268,11 @@ class InternalScanner {
         {
             if (jar != null)
             {
-                log.error("Unable to determine version for '" + pkg + "' in jar '" + jar.getPath() + "'");
+                log.warn("Unable to determine version for '" + pkg + "' in jar '" + jar.getPath() + "'");
             }
             else
             {
-                log.error("Unable to determine version for '" + pkg + "'");
+                log.warn("Unable to determine version for '" + pkg + "'");
             }
         }
 
