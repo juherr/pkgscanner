@@ -1,5 +1,8 @@
 package org.twdata.pkgscanner;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.net.URL;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -12,6 +15,7 @@ import java.io.File;
  * Does the actual work of scanning the classloader
  */
 class InternalScanner {
+    private static Log log = LogFactory.getLog(InternalScanner.class);
     private Map<String,Set<String>> jarContentCache = new HashMap<String,Set<String>>();
     private ClassLoader classloader;
     private PackageScanner.VersionMapping[] versionMappings;
@@ -82,7 +86,7 @@ class InternalScanner {
             urls = classloader.getResources(packageName);
         }
         catch (IOException ioe) {
-            System.err.println("Could not read package: " + packageName);
+            log.error("Could not read package: " + packageName);
             return localExports;
         }
 
@@ -104,7 +108,7 @@ class InternalScanner {
                     urlPath = "file:"+urlPath;
                 }
 
-                //System.out.println("Scanning for classes in [" + urlPath + "] matching criteria: " + test);
+                log.debug("Scanning for classes in [" + urlPath + "] matching criteria: " + test);
                 File file = null;
                 try
                 {
@@ -112,6 +116,8 @@ class InternalScanner {
                     // only scan elements in the classpath that are local files
                     if("file".equals(fileURL.getProtocol().toLowerCase()))
                         file = new File(fileURL.toURI());
+                    else
+                        log.info("Skipping non file classpath element [ "+urlPath+ " ]");
                 }
                 catch (URISyntaxException e)
                 {
@@ -128,7 +134,7 @@ class InternalScanner {
                 }
             }
             catch (IOException ioe) {
-                System.err.println("could not read entries: " + ioe);
+                log.error("could not read entries: " + ioe);
             }
         }
         return localExports;
@@ -217,7 +223,7 @@ class InternalScanner {
                 }
             }
             catch (IOException ioe) {
-                System.err.println("Could not search jar file '" + file + "' for classes matching criteria: " +
+                log.error("Could not search jar file '" + file + "' for classes matching criteria: " +
                         test + " due to an IOException" + ioe);
                 return Collections.emptyList();
             }
@@ -262,11 +268,11 @@ class InternalScanner {
         {
             if (jar != null)
             {
-                System.err.println("Unable to determine version for '" + pkg + "' in jar '" + jar.getPath() + "'");
+                log.error("Unable to determine version for '" + pkg + "' in jar '" + jar.getPath() + "'");
             }
             else
             {
-                System.err.println("Unable to determine version for '" + pkg + "'");
+                log.error("Unable to determine version for '" + pkg + "'");
             }
         }
 
