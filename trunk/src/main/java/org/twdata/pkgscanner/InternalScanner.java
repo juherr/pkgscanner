@@ -105,10 +105,13 @@ class InternalScanner {
                 }
 
                 //System.out.println("Scanning for classes in [" + urlPath + "] matching criteria: " + test);
-                File file;
+                File file = null;
                 try
                 {
-                    file = new File(new URL(urlPath).toURI());
+                    URL fileURL = new URL(urlPath);
+                    // only scan elements in the classpath that are local files
+                    if("file".equals(fileURL.getProtocol().toLowerCase()))
+                        file = new File(fileURL.toURI());
                 }
                 catch (URISyntaxException e)
                 {
@@ -116,9 +119,9 @@ class InternalScanner {
                     file = new File(urlPath.substring("file:".length()));
                 }
 
-                if (file.isDirectory()) {
+                if (file!=null && file.isDirectory()) {
                     localExports.addAll(loadImplementationsInDirectory(test, packageName, file));
-                } else {
+                } else if (file!=null) {
                     if (test.matchesJar(file.getName())) {
                         localExports.addAll(loadImplementationsInJar(test, file));
                     }
