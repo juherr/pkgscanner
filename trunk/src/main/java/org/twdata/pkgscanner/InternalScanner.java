@@ -104,6 +104,10 @@ class InternalScanner {
                 // it's in a JAR, grab the path to the jar
                 if (urlPath.lastIndexOf('!') > 0) {
                     urlPath = urlPath.substring(0, urlPath.lastIndexOf('!'));
+                    if (urlPath.startsWith("/"))
+                    {
+                        urlPath = "file:" + urlPath;
+                    }
                 } else if (!urlPath.startsWith("file:")) {
                     urlPath = "file:"+urlPath;
                 }
