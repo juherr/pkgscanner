@@ -3,7 +3,7 @@
     <groupId>org.twdata.pkgscanner</groupId>
     <artifactId>package-scanner</artifactId>
     <packaging>jar</packaging>
-    <version>0.7.9</version>
+    <version>0.7.10-SNAPSHOT</version>
     <name>Package Export Scanner</name>
     <url>http://maven.apache.org</url>
 
@@ -68,8 +68,8 @@
     </distributionManagement>
 
     <scm>
-        <connection>scm:svn:https://pkgscanner.googlecode.com/svn/tags/package-scanner-0.7.9</connection>
-        <developerConnection>scm:svn:https://pkgscanner.googlecode.com/svn/tags/package-scanner-0.7.9</developerConnection>
+        <connection>scm:svn:https://pkgscanner.googlecode.com/svn/trunk</connection>
+        <developerConnection>scm:svn:https://pkgscanner.googlecode.com/svn/trunk</developerConnection>
     </scm>
 
 </project>
