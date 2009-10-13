@@ -184,6 +184,7 @@ class InternalScanner {
                 pkg = pkg.replace('/', '.');
                 if (!scanned.contains(pkg)) {
                     if (test.matchesPackage(pkg)) {
+                        log.debug(String.format("loadImplementationsInDirectory: [%s] %s", pkg, file));
                         localExports.add(new ExportPackage(pkg, determinePackageVersion(null, pkg)));
                     }
                     scanned.add(pkg);
@@ -222,6 +223,7 @@ class InternalScanner {
                             pkg = pkg.substring(0, pos);
                         }
                         pkg = pkg.replace('/', '.');
+                        log.debug(String.format("loadImplementationsInJar: [%s] %s", pkg, file));                        
                         packages.add(pkg);
                      }
                 }
