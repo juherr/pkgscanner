@@ -167,15 +167,19 @@ class InternalScanner {
     List<ExportPackage> loadImplementationsInDirectory(Test test, String parent, File location) {
         log.debug("Scanning directory " + location.getAbsolutePath() + " parent: '" + parent + "'.");
         File[] files = location.listFiles();
-        StringBuilder builder = null;
         List<ExportPackage> localExports = new ArrayList<ExportPackage>();
         Set<String> scanned = new HashSet<String>();
 
         for (File file : files) {
-            builder = new StringBuilder(100);
-            builder.append(parent).append("/").append(file.getName());
-            String packageOrClass = (parent == null ? file.getName() : builder.toString());
-
+            final String packageOrClass;
+            if (parent == null || parent.length() == 0)
+            {
+                packageOrClass = file.getName();
+            }
+            else
+            {
+                packageOrClass = parent + "/" + file.getName();
+            }
 
             if (file.isDirectory()) {
                 localExports.addAll(loadImplementationsInDirectory(test, packageOrClass, file));
