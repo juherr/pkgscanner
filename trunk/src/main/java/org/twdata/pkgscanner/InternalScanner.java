@@ -52,7 +52,7 @@ class InternalScanner {
         }
 
         // Let's be nice and sort the results by package
-        return new TreeSet(map.values());
+        return new TreeSet<ExportPackage>(map.values());
     }
 
     Collection<ExportPackage> findInUrls(Test test, URL... urls) {
@@ -75,6 +75,7 @@ class InternalScanner {
      * @param test        an instance of {@link Test} that will be used to filter classes
      * @param packageName the name of the package from which to start scanning for
      *                    classes, e.g. {@code net.sourceforge.stripes}
+     * @return List of packages to export.
      */
     List<ExportPackage> findInPackage(Test test, String packageName) {
         List<ExportPackage> localExports = new ArrayList<ExportPackage>();
@@ -84,6 +85,11 @@ class InternalScanner {
 
         try {
             urls = classloader.getResources(packageName);
+            // test for empty
+            if (!urls.hasMoreElements())
+            {
+                log.warn("Unable to find any resources for package '" + packageName + "'");
+            }
         }
         catch (IOException ioe) {
             log.warn("Could not read package: " + packageName);
@@ -112,7 +118,7 @@ class InternalScanner {
                     urlPath = "file:"+urlPath;
                 }
 
-                log.debug("Scanning for classes in [" + urlPath + "] matching criteria: " + test);
+                log.debug("Scanning for packages in [" + urlPath + "].");
                 File file = null;
                 try
                 {
@@ -156,8 +162,10 @@ class InternalScanner {
      *                 /classes is in the classpath and we wish to examine files in /classes/org/apache then
      *                 the values of <i>parent</i> would be <i>org/apache</i>
      * @param location a File object representing a directory
+     * @return List of packages to export.
      */
     List<ExportPackage> loadImplementationsInDirectory(Test test, String parent, File location) {
+        log.debug("Scanning directory " + location.getAbsolutePath() + " parent: '" + parent + "'.");
         File[] files = location.listFiles();
         StringBuilder builder = null;
         List<ExportPackage> localExports = new ArrayList<ExportPackage>();
@@ -201,6 +209,7 @@ class InternalScanner {
      *
      * @param test    a Test used to filter the classes that are discovered
      * @param file the jar file to be examined for classes
+     * @return List of packages to export.
      */
     List<ExportPackage> loadImplementationsInJar(Test test, File file) {
 
@@ -223,8 +232,12 @@ class InternalScanner {
                             pkg = pkg.substring(0, pos);
                         }
                         pkg = pkg.replace('/', '.');
-                        log.debug(String.format("loadImplementationsInJar: [%s] %s", pkg, file));                        
-                        packages.add(pkg);
+                        boolean newlyAdded = packages.add(pkg);
+                        if (newlyAdded && log.isDebugEnabled())
+                        {
+                            // Use newlyAdded as we don't want to log duplicates
+                            log.debug(String.format("Found package '%s' in jar file [%s]", pkg, file));
+                        }
                      }
                 }
             }
@@ -288,6 +301,8 @@ class InternalScanner {
     /**
      * Tries to guess the version by assuming it starts as the first number after a '-' or '_' sign, then converts
      * the version into an OSGi-compatible one.
+     * @param filename the filename
+     * @return The extracted version.
      */
     String extractVersion(String filename)
     {
