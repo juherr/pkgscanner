@@ -93,7 +93,7 @@ public class PackageScanner {
         InternalScanner scanner = new InternalScanner(getClassLoader(), versionMappings, debug);
 
         // Kick off the scanning
-        Collection<ExportPackage> exports = scanner.findInPackages(new PatternTest(), roots.toArray(new String[]{}));
+        Collection<ExportPackage> exports = scanner.findInPackages(new PatternTest(), roots.toArray(new String[roots.size()]));
 
         return exports;
     }
@@ -333,7 +333,7 @@ public class PackageScanner {
         }
 
         List<String> getRoots() {
-            List<String> roots = new ArrayList();
+            List<String> roots = new ArrayList<String>();
             for (String inc : origIncludes) {
                 String root = inc;
                 int starPos = root.indexOf("*");
