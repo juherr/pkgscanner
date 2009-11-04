@@ -43,28 +43,28 @@ class InternalScanner {
     }
 
     Collection<ExportPackage> findInPackages(Test test, String... roots) {
-        // weans out duplicates by choosing the winner as the last one to be discovered
-        Map<String, ExportPackage> map = new HashMap<String,ExportPackage>();
+        // ExportPackageListBuilder weans out duplicates with some smarts
+        ExportPackageListBuilder exportPackageListBuilder = new ExportPackageListBuilder();
         for (String pkg : roots) {
             for (ExportPackage export : findInPackage(test, pkg)) {
-                map.put(export.getPackageName(), export);
+                exportPackageListBuilder.add(export);
             }
         }
 
-        // Let's be nice and sort the results by package
-        return new TreeSet<ExportPackage>(map.values());
+        // returns the packages sorted by name
+        return exportPackageListBuilder.getPackageList();
     }
 
     Collection<ExportPackage> findInUrls(Test test, URL... urls) {
-        // weans out duplicates by choosing the winner as the last one to be discovered
-        Map<String, ExportPackage> map = new HashMap<String,ExportPackage>();
+        // ExportPackageListBuilder weans out duplicates with some smarts
+        ExportPackageListBuilder exportPackageListBuilder = new ExportPackageListBuilder();
         Vector<URL> list = new Vector<URL>(Arrays.asList(urls));
         for (ExportPackage export : findInPackageWithUrls(test, "", list.elements())) {
-            map.put(export.getPackageName(), export);
+            exportPackageListBuilder.add(export);
         }
 
-        // Let's be nice and sort the results by package
-        return new TreeSet<ExportPackage>(map.values());
+        // returns the packages sorted by name
+        return exportPackageListBuilder.getPackageList();
     }
 
     /**
@@ -197,7 +197,7 @@ class InternalScanner {
                 if (!scanned.contains(pkg)) {
                     if (test.matchesPackage(pkg)) {
                         log.debug(String.format("loadImplementationsInDirectory: [%s] %s", pkg, file));
-                        localExports.add(new ExportPackage(pkg, determinePackageVersion(null, pkg)));
+                        localExports.add(new ExportPackage(pkg, determinePackageVersion(null, pkg), location));
                     }
                     scanned.add(pkg);
                 }
@@ -262,7 +262,7 @@ class InternalScanner {
         {
             if (!scanned.contains(pkg)) {
                 if (test.matchesPackage(pkg)) {
-                    localExports.add(new ExportPackage(pkg, determinePackageVersion(file, pkg)));
+                    localExports.add(new ExportPackage(pkg, determinePackageVersion(file, pkg), file));
                 }
                 scanned.add(pkg);
             }
