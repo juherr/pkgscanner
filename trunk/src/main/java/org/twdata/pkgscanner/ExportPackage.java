@@ -1,15 +1,32 @@
 package org.twdata.pkgscanner;
 
+import java.io.File;
+
 /**
  * Represents an export consisting of a package name and version
+ * 
+ * Note: this class has a natural ordering that is inconsistent with equals.
  */
 public class ExportPackage implements Comparable<ExportPackage> {
-    private String packageName;
-    private String version;
+    private final String packageName;
+    private final String version;
+    private final File location;
 
-    public ExportPackage(String packageName, String version) {
+    /**
+     * Constructs an ExportPackage object.
+     *
+     * @param packageName name of the package. Cannot be null.
+     * @param version Version for this package. A null value means the version is "unknown".
+     * @param location The file where this package was found. Cannot be null.
+     */
+    public ExportPackage(String packageName, String version, File location) {
+        if (packageName == null)
+            throw new IllegalArgumentException("packageName must not be null");
+        if (location == null)
+            throw new IllegalArgumentException("location must not be null");
         this.version = version;
-        if (packageName != null && packageName.startsWith(".")) {
+        this.location = location;
+        if (packageName.startsWith(".")) {
             packageName = packageName.substring(1);
         }
         this.packageName = packageName;
@@ -21,6 +38,10 @@ public class ExportPackage implements Comparable<ExportPackage> {
 
     public String getVersion() {
         return version;
+    }
+
+    public File getLocation() {
+        return location;
     }
 
     public int compareTo(ExportPackage exportPackage) {

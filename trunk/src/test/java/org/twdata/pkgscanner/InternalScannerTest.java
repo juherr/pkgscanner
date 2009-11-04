@@ -136,10 +136,9 @@ public class InternalScannerTest extends TestCase {
         assertNotNull(exports);
         assertEquals(2, exports.size());
 
-        assertTrue(exports.contains(new ExportPackage("pkg.in.jar", "1.0")));
-        assertTrue(exports.contains(new ExportPackage("pkg.in.dir", "1.1")));
+        assertTrue(exports.contains(new ExportPackage("pkg.in.jar", "1.0.0", new File("somewhere/dude-1.0.jar"))));
+        assertTrue(exports.contains(new ExportPackage("pkg.in.dir", "1.1.0", new File("somewhere/swan.jar"))));
     }
-
 
     public void testFindInPackagesWithUrlsAndPlusInFilename() throws Exception {
 
