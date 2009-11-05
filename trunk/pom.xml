@@ -3,7 +3,7 @@
     <groupId>org.twdata.pkgscanner</groupId>
     <artifactId>package-scanner</artifactId>
     <packaging>jar</packaging>
-    <version>0.7.13-SNAPSHOT</version>
+    <version>0.7.11-SNAPSHOT</version>
     <name>Package Export Scanner</name>
     <url>http://maven.apache.org</url>
 
