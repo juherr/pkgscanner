@@ -1,8 +1,5 @@
 package org.twdata.pkgscanner;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.net.URL;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -11,11 +8,14 @@ import java.util.jar.JarFile;
 import java.io.IOException;
 import java.io.File;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Does the actual work of scanning the classloader
  */
 class InternalScanner {
-    private final Log log = LogFactory.getLog(InternalScanner.class);
+    private final Logger log = LoggerFactory.getLogger(InternalScanner.class);
     private Map<String,Set<String>> jarContentCache = new HashMap<String,Set<String>>();
     private ClassLoader classloader;
     private PackageScanner.VersionMapping[] versionMappings;

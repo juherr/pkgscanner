@@ -1,7 +1,7 @@
 package org.twdata.pkgscanner;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.Collections;
  * @since 0.7.11
  */
 public class ExportPackageListBuilder {
-    private final static Log log = LogFactory.getLog(ExportPackageListBuilder.class);
+    private final static Logger log = LoggerFactory.getLogger(ExportPackageListBuilder.class);
 
     private Map<String, ExportPackage> packageMap = new HashMap<String, ExportPackage>();
 
