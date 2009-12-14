@@ -1,19 +1,18 @@
 package org.twdata.pkgscanner;
 
 import junit.framework.TestCase;
+import org.twdata.pkgscanner.pattern.CompiledPattern;
+import org.twdata.pkgscanner.pattern.PatternFactory;
+import org.twdata.pkgscanner.pattern.SimpleWildcardPatternFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Collection;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Vector;
-
-import org.twdata.pkgscanner.pattern.PatternFactory;
-import org.twdata.pkgscanner.pattern.CompiledPattern;
-import org.twdata.pkgscanner.pattern.SimpleWildcardPatternFactory;
 
 public class InternalScannerTest extends TestCase {
     private File tmpDir;
@@ -191,5 +190,24 @@ public class InternalScannerTest extends TestCase {
         }, "foo", urls);
         assertNotNull(exports);
         assertEquals(0, exports.size());
+    }
+
+    public void testExtractVersion() throws Exception
+    {
+        InternalScanner scanner = new InternalScanner(this.getClass().getClassLoader(), new PackageScanner.VersionMapping[0], false);
+        assertEquals("1.6.1", scanner.extractVersion("wsdl4j-1.6.1.jar"));
+        assertEquals("1.6.0", scanner.extractVersion("wsdl4j-1.6.jar"));
+        assertEquals("1.0.0", scanner.extractVersion("wsdl4j-1.jar"));
+        assertEquals("1.6.1.35", scanner.extractVersion("wsdl4j-1.6.1.3.5.jar"));
+        assertEquals("1.2.0.3RC3", scanner.extractVersion("wsdl4j-1.2.3RC3.jar"));
+        // Test with various qualifier separators
+        assertEquals("1.2.3.RC4", scanner.extractVersion("wsdl4j-1.2.3-RC4.jar"));
+        assertEquals("1.2.3.RC4", scanner.extractVersion("wsdl4j-1.2.3.RC4.jar"));
+        assertEquals("1.2.3.RC4", scanner.extractVersion("wsdl4j-1.2.3_RC4.jar"));
+        assertEquals("1.2.3.RC4", scanner.extractVersion("wsdl4j-1.2.3/RC4.jar"));
+        assertEquals("1.2.0.3RC3", scanner.extractVersion("wsdl4j-1.2.3RC3.jar"));
+        // Test with a number after the first separator (this used to be a bug)
+        assertEquals("2.3.4", scanner.extractVersion("stuff-foo2-2.3.4.jar"));
+        assertEquals(null, scanner.extractVersion("tomcat-i18n-es.jar"));
     }
 }
