@@ -317,8 +317,12 @@ class InternalScanner {
             char c = filename.charAt(x);
             if (c == '-' || c == '_')
                 lastWasSeparator = true;
-            else if (Character.isDigit(c) && lastWasSeparator && version == null)
-                version = new StringBuilder();
+            else
+            {
+                if (Character.isDigit(c) && lastWasSeparator && version == null)
+                    version = new StringBuilder();
+                lastWasSeparator = false;
+            }
 
             if (version != null)
                 version.append(c);
