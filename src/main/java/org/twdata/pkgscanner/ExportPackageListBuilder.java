@@ -37,18 +37,18 @@ public class ExportPackageListBuilder {
             if (exportPackage.getVersion() == null) {
                 // The new package location has no version number, so we don't update.
                 if (currentExportPackage.getVersion() != null) {
-                    // The first jar has a version, and the second doesn't - log a warning.
-                    logDuplicateWarning(exportPackage, currentExportPackage);
+                    // The first jar has a version, and the second doesn't - log a message.
+                    logDuplicateOneVersion(exportPackage, currentExportPackage, currentExportPackage.getVersion());
                 }
             } else {
                 if (currentExportPackage.getVersion() == null) {
                     // The first jar has no version, and the second one does, so we prefer the second.
                     packageMap.put(packageName, exportPackage);
-                    logDuplicateWarning(exportPackage, currentExportPackage);
+                    logDuplicateOneVersion(exportPackage, currentExportPackage, exportPackage.getVersion());
                 } else {
                     // Check if the jars export different versions.
                     if (!currentExportPackage.getVersion().equals(exportPackage.getVersion())) {
-                        // The jars both have versions, and they are not equal
+                        // The jars both have versions, and they are not equal - log this at warning level
                         logDuplicateWarning(exportPackage, currentExportPackage);
                     }
                     // For backward compatibility with v0.7.10, we will prefer the version of the last to be discovered.
@@ -58,6 +58,12 @@ public class ExportPackageListBuilder {
             }
 
         }
+    }
+
+    private void logDuplicateOneVersion(ExportPackage exportPackage1, ExportPackage exportPackage2, String acceptedVersion)
+    {
+        log.info("Package Scanner found duplicates for package '" + exportPackage1.getPackageName() + "' - accepting version '" + acceptedVersion + "'. Files: " +
+                exportPackage1.getLocation().getName() + " and " + exportPackage2.getLocation().getName());
     }
 
     private void logDuplicateWarning(final ExportPackage exportPackage1, final ExportPackage exportPackage2) {
