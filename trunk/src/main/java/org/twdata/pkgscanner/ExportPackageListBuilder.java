@@ -63,12 +63,18 @@ public class ExportPackageListBuilder {
     private void logDuplicateOneVersion(ExportPackage exportPackage1, ExportPackage exportPackage2, String acceptedVersion)
     {
         log.info("Package Scanner found duplicates for package '" + exportPackage1.getPackageName() + "' - accepting version '" + acceptedVersion + "'. Files: " +
-                exportPackage1.getLocation().getName() + " and " + exportPackage2.getLocation().getName());
+                 exportPackage1.getLocation().getName() + " and " + exportPackage2.getLocation().getName() +
+                 "\n  '" + exportPackage1.getLocation().getAbsolutePath() + "'" +
+                 "\n  '" + exportPackage2.getLocation().getAbsolutePath() + "'"
+         );
     }
 
     private void logDuplicateWarning(final ExportPackage exportPackage1, final ExportPackage exportPackage2) {
         log.warn("Package Scanner found duplicates for package '" + exportPackage1.getPackageName() + "' with different versions. Files: " +
-                exportPackage1.getLocation().getName() + " and " + exportPackage2.getLocation().getName());
+                exportPackage1.getLocation().getName() + " and " + exportPackage2.getLocation().getName() +
+                "\n  '" + exportPackage1.getLocation().getAbsolutePath() + "'" +
+                "\n  '" + exportPackage2.getLocation().getAbsolutePath() + "'"
+        );
     }
 
     /**
