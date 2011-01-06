@@ -58,6 +58,18 @@ public class DefaultOsgiVersionConverterTest extends TestCase
         assertEquals( "0.0.0.4aug2000r7_dev", osgiVersion );
     }
 
+    public void testBlank()
+    {
+        assertEquals("0.0.0", maven2Osgi.getVersion(""));
+    }
+
+    public void testBlankComponents()
+    {
+        assertEquals("0.0.0", maven2Osgi.getVersion(".."));
+        assertEquals("0.5.0", maven2Osgi.getVersion(".5."));
+        assertEquals("0.0.0", maven2Osgi.getVersion("..."));
+    }
+
     /*
     public void testPerformance() throws Exception
     {

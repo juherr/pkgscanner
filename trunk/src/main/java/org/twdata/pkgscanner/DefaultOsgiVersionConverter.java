@@ -110,16 +110,21 @@ public class DefaultOsgiVersionConverter implements OsgiVersionConverter
     private String getVersion( String major, String minor, String service, String qualifier )
     {
         StringBuffer sb = new StringBuffer();
-        sb.append( major != null ? major : "0" );
+        sb.append( isBlank(major) ? "0" : major );
         sb.append( '.' );
-        sb.append( minor != null ? minor : "0" );
+        sb.append( isBlank(minor) ? "0" : minor );
         sb.append( '.' );
-        sb.append( service != null ? service : "0" );
-        if ( qualifier != null )
+        sb.append( isBlank(service) ? "0" : service);
+        if (!isBlank(qualifier))
         {
             sb.append( '.' );
             sb.append( qualifier );
         }
         return sb.toString();
+    }
+
+    private static boolean isBlank(String str)
+    {
+        return str == null || str.length() == 0;
     }
 }
