@@ -329,6 +329,10 @@ class InternalScanner {
                 String name = jar.getName();
                 version = extractVersion(name);
             }
+
+            if (version != null) {
+                guessedJarVersionCache.put(jar, version);
+            }
         }
 
         if (version == null && debug)
@@ -341,10 +345,6 @@ class InternalScanner {
             {
                 log.warn("Unable to determine version for '" + pkg + "'");
             }
-        }
-
-        if (version != null) {
-            guessedJarVersionCache.put(jar, version);
         }
 
         return version;
