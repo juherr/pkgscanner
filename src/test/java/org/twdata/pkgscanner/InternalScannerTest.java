@@ -1,27 +1,44 @@
 package org.twdata.pkgscanner;
 
 import junit.framework.TestCase;
+import org.apache.commons.io.IOUtils;
 import org.twdata.pkgscanner.pattern.CompiledPattern;
 import org.twdata.pkgscanner.pattern.PatternFactory;
 import org.twdata.pkgscanner.pattern.SimpleWildcardPatternFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Vector;
+import java.util.*;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
 
 public class InternalScannerTest extends TestCase {
     private File tmpDir;
     private boolean debug = true;
+    private InternalScanner scanner;
 
     @Override
     public void setUp() throws IOException {
         tmpDir = new File("target", "footest");
         tmpDir.mkdir();
+
+        scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {}, debug);
+        scanner.setOsgiVersionConverter(new OsgiVersionConverter()
+        {
+            public String getVersion(String version)
+            {
+                return version;
+            }
+        });
     }
 
     @Override
@@ -29,18 +46,60 @@ public class InternalScannerTest extends TestCase {
         tmpDir.delete();
     }
     public void testDeterminePackageVersion() throws Exception {
-        InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {}, debug);
-        scanner.setOsgiVersionConverter(new OsgiVersionConverter() {
-            public String getVersion(String version) { return version; }
-        });
-        assertEquals("2.0", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0.jar"), "testpackage"));
-        assertEquals("2.0_something", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0_something.jar"), "testpackage"));
-        assertEquals("2.0-beta", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0-beta.jar"), "testpackage"));
-        assertEquals("2", scanner.determinePackageVersion(new File(tmpDir, "foo-2.jar"), "testpackage"));
-        assertEquals("2", scanner.determinePackageVersion(new File(tmpDir, "foo4-2.jar"), "testpackage"));
+        assertEquals("2.0", scanner.determinePackageVersion(new File(tmpDir, "sdfoo-2.0.jar"), "testpackage"));
+        assertEquals("2.0_something", scanner.determinePackageVersion(new File(tmpDir, "fdsfoo-2.0_something.jar"), "testpackage"));
+        assertEquals("2.0-beta", scanner.determinePackageVersion(new File(tmpDir, "fwwoo-2.0-beta.jar"), "testpackage"));
+        assertEquals("2", scanner.determinePackageVersion(new File(tmpDir, "fofdso-2.jar"), "testpackage"));
+        assertEquals("2", scanner.determinePackageVersion(new File(tmpDir, "foaao4-2.jar"), "testpackage"));
         assertEquals("1.2.8", scanner.determinePackageVersion(new File(tmpDir, "log4j-1.2.8.jar"), "testpackage"));
         assertEquals("2.0+xmlrpc61", scanner.determinePackageVersion(new File(tmpDir, "xmlrpc-2.0+xmlrpc61.jar"), "testpackage"));
         assertEquals(null, scanner.determinePackageVersion(new File(tmpDir, "foo-alpha.jar"), "testpackage"));
+    }
+
+    public void testDeterminePackageVersionFromManifest() throws IOException
+    {
+        assertEquals("1", scanner.determinePackageVersion(createJarWithManifest(singletonMap("Bundle-Version", "1")), "testpackage"));
+        assertEquals("1", scanner.determinePackageVersion(createJarWithManifest(singletonMap("Specification-Version", "1")), "testpackage"));
+        assertEquals("1", scanner.determinePackageVersion(createJarWithManifest(singletonMap("Implementation-Version", "1")), "testpackage"));
+        assertNotNull(scanner.determinePackageVersion(createJarWithManifest(
+                Collections.<String, String>emptyMap()), "testpackage"));
+    }
+
+    public void testDeterminePackageVersionFromMaven() throws Exception {
+        assertEquals("1", scanner.determinePackageVersion(
+                createJarWithManifestAndEntries(Collections.<String, String>emptyMap(),
+                        singletonMap(
+                        "/META-INF/maven/groupId/artifactId/pom.properties",
+                        "foo=bar\nversion=1")), "testpackage"));
+    }
+
+    private File createJarWithManifest(Map<String, String> manifestEntries) throws
+            IOException
+    {
+        return createJarWithManifestAndEntries(manifestEntries,
+                Collections.<String, String>emptyMap());
+    }
+    private File createJarWithManifestAndEntries(Map<String, String> manifestEntries, Map<String,String> entries) throws
+            IOException
+    {
+        Manifest mf = new Manifest();
+        mf.getMainAttributes().putValue("Manifest-Version", "1");
+        for (Map.Entry<String,String> entry : manifestEntries.entrySet()) {
+            mf.getMainAttributes().putValue(entry.getKey(), entry.getValue());
+        }
+        File file = File.createTempFile("pkgscanner-test-", ".jar", tmpDir);
+        ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(file));
+        zout.putNextEntry(new ZipEntry("META-INF/"));
+        zout.putNextEntry(new ZipEntry("META-INF/MANIFEST.MF"));
+        mf.write(zout);
+
+        for (Map.Entry<String,String> entry : entries.entrySet())
+        {
+            zout.putNextEntry(new ZipEntry(entry.getKey()));
+            IOUtils.write(entry.getValue(), zout);
+        }
+        zout.close();
+        return file;
     }
 
     public void testDeterminePackageVersionWithExplicitVersion() throws Exception {
@@ -60,7 +119,7 @@ public class InternalScannerTest extends TestCase {
         });
         InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {mapping}, debug);
 
-        assertEquals("34.0.0", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0.jar"), "testpackage"));
+        assertEquals("34.0.0", scanner.determinePackageVersion(new File(tmpDir, "fdas-2.0.jar"), "testpackage"));
     }
 
     public void testDeterminePackageVersionWithExplicitNonOsgiVersion() throws Exception {
@@ -80,7 +139,7 @@ public class InternalScannerTest extends TestCase {
         });
         InternalScanner scanner = new InternalScanner(getClass().getClassLoader(), new PackageScanner.VersionMapping[] {mapping}, debug);
 
-        assertEquals("34.0.0.SNAPSHOT", scanner.determinePackageVersion(new File(tmpDir, "foo-2.0.jar"), "testpackage"));
+        assertEquals("34.0.0.SNAPSHOT", scanner.determinePackageVersion(new File(tmpDir, "asdf-2.0.jar"), "testpackage"));
     }
 
     public void testLoadImplementationsInDirectory() throws Exception {

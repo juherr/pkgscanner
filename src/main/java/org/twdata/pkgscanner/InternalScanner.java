@@ -1,5 +1,6 @@
 package org.twdata.pkgscanner;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -7,6 +8,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.io.IOException;
 import java.io.File;
+import java.util.jar.Manifest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,7 @@ import org.slf4j.LoggerFactory;
 class InternalScanner {
     private final Logger log = LoggerFactory.getLogger(InternalScanner.class);
     private Map<String,Set<String>> jarContentCache = new HashMap<String,Set<String>>();
+    private Map<File, String> guessedJarVersionCache = new HashMap<File, String>();
     private ClassLoader classloader;
     private PackageScanner.VersionMapping[] versionMappings;
     private OsgiVersionConverter versionConverter = new DefaultOsgiVersionConverter();
@@ -279,12 +282,53 @@ class InternalScanner {
                 version = mapping.getVersion();
             }
         }
-        if (version == null && jar != null) {
-            // TODO: Look for osgi headers
 
-            // Try to guess the version from the jar name
-            String name = jar.getName();
-            version = extractVersion(name);
+        if (version == null) {
+            version = guessedJarVersionCache.get(jar);
+        }
+
+        if (version == null && jar != null) {
+            JarFile jarFile = null;
+            try {
+                jarFile = new JarFile(jar);
+                Manifest mf = jarFile.getManifest();
+                if (mf != null && mf.getMainAttributes() != null) {
+                    version = mf.getMainAttributes().getValue("Bundle-Version");
+
+                    if (version == null) {
+                        version = mf.getMainAttributes().getValue("Specification-Version");
+                    }
+
+                    if (version == null) {
+                        version = mf.getMainAttributes().getValue("Implementation-Version");
+                    }
+
+                    if (version == null) {
+                        version = determineVersionFromMavenProperties(jarFile);
+                    }
+                }
+            }
+            catch (IOException ex) {
+                log.debug("Cannot turn file into jar file", ex);
+            }
+            finally {
+                if (jarFile != null)
+                {
+                    try {
+                        jarFile.close();
+                    }
+                    catch (IOException e) {
+                        // ignore
+                    }
+                }
+            }
+
+            // give up and try the jar name
+            if (version == null) {
+                // Try to guess the version from the jar name
+                String name = jar.getName();
+                version = extractVersion(name);
+            }
         }
 
         if (version == null && debug)
@@ -299,7 +343,40 @@ class InternalScanner {
             }
         }
 
+        if (version != null) {
+            guessedJarVersionCache.put(jar, version);
+        }
+
         return version;
+    }
+
+    private String determineVersionFromMavenProperties(JarFile jarFile)
+    {
+        for (Enumeration<JarEntry> e = jarFile.entries(); e.hasMoreElements(); ) {
+            JarEntry entry = e.nextElement();
+            if (entry.getName().endsWith("/pom.properties")) {
+                InputStream in = null;
+                try {
+                    in = jarFile.getInputStream(entry);
+                    Properties props = new Properties();
+                    props.load(in);
+                    return props.getProperty("version");
+                }
+                catch (IOException ex) {
+                    log.debug("Exception reading maven properties file", ex);
+                }
+                finally {
+                    if (in != null) {
+                        try {
+                            in.close();
+                        } catch (IOException ex) {
+                            // ignore
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**
